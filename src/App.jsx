@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react'
-import { Activity, Zap, User, Settings, RefreshCw, Sun, Moon, LogOut } from 'lucide-react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { Activity, Zap, User, Settings, RefreshCw, Sun, Moon, LogOut, Clock } from 'lucide-react'
 import { useRealtimeData } from './hooks/useRealtimeData'
 import OwnerDashboard from './pages/OwnerDashboard'
 import OperationsDashboard from './pages/OperationsDashboard'
@@ -8,13 +8,13 @@ import LoginPage from './pages/LoginPage'
 import { getStressLabel } from './lib/dataEngine'
 
 export default function App() {
-  // ✅ TEMP: dummy user to skip login — change back to useState(null) when done
-  const [user, setUser] = useState({ name: 'Test User', role: 'owner', title: 'Business Owner' })
+  const [user, setUser] = useState(null)
   const [role, setRole] = useState('owner')
   const [scenario, setScenario] = useState('normal')
   const [warRoom, setWarRoom] = useState(false)
   const [pulse, setPulse] = useState(false)
   const [theme, setTheme] = useState('dark')
+  const [sessionWarning, setSessionWarning] = useState(false)
 
   const isDark = theme === 'dark'
 
@@ -41,13 +41,13 @@ export default function App() {
   }, [metrics])
 
   // Theme color tokens
-  const bg        = isDark ? '#080c14' : '#f1f5f9'
-  const surface   = isDark ? '#0d1526' : '#ffffff'
+  const bg = isDark ? '#080c14' : '#f1f5f9'
+  const surface = isDark ? '#0d1526' : '#ffffff'
   const borderCol = isDark ? '#1a2540' : '#e2e8f0'
-  const textMain  = isDark ? '#e2e8f0' : '#0f172a'
+  const textMain = isDark ? '#e2e8f0' : '#0f172a'
   const textMuted = isDark ? '#4a6080' : '#64748b'
-  const headerBg  = isDark ? 'rgba(8,12,20,0.95)' : 'rgba(255,255,255,0.95)'
-  const subBg     = isDark ? '#0a0f1e' : '#f8fafc'
+  const headerBg = isDark ? 'rgba(8,12,20,0.95)' : 'rgba(255,255,255,0.95)'
+  const subBg = isDark ? '#0a0f1e' : '#f8fafc'
 
   // Login / Logout handlers
   const handleLogin = (loggedUser) => {
@@ -55,42 +55,107 @@ export default function App() {
     setRole(loggedUser.role)
   }
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setUser(null)
     setWarRoom(false)
-  }
+    setSessionWarning(false)
+  }, [])
 
+  // ── Session Timeout (5 minutes inactivity) ──────────────────────────
+  const SESSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+  const timeoutRef = useRef(null)
+  const warningRef = useRef(null)
+
+  const resetTimer = useCallback(() => {
+    clearTimeout(timeoutRef.current)
+    clearTimeout(warningRef.current)
+    setSessionWarning(false)
+
+    // Show warning 1 minute before logout
+    warningRef.current = setTimeout(() => {
+      setSessionWarning(true)
+    }, SESSION_TIMEOUT - 60000)
+
+    // Auto logout after full timeout
+    timeoutRef.current = setTimeout(() => {
+      handleLogout()
+    }, SESSION_TIMEOUT)
+  }, [handleLogout])
+
+  useEffect(() => {
+    if (!user) return
+
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart', 'click']
+    events.forEach(e => window.addEventListener(e, resetTimer))
+    resetTimer()
+
+    return () => {
+      events.forEach(e => window.removeEventListener(e, resetTimer))
+      clearTimeout(timeoutRef.current)
+      clearTimeout(warningRef.current)
+    }
+  }, [user, resetTimer])
+
+  // Normal button active style
   const scenarioBtnClass = (s) =>
-    `px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${
-      scenario === s
-        ? s === 'crisis'
-          ? 'bg-red-500/20 text-red-400 border border-red-500/50'
-          : s === 'opportunity'
+    `px-3 py-1.5 rounded-lg text-xs font-mono transition-all ${scenario === s
+      ? s === 'crisis'
+        ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+        : s === 'opportunity'
           ? 'bg-green-500/20 text-green-400 border border-green-500/50'
           : isDark
             ? 'bg-white/10 text-white border border-white/40'
             : 'bg-white text-slate-900 border border-slate-400'
-        : isDark
-          ? 'bg-[#1a2540] text-[#4a6080] hover:text-white border border-transparent'
-          : 'bg-slate-100 text-slate-500 hover:text-slate-800 border border-transparent'
+      : isDark
+        ? 'bg-[#1a2540] text-[#4a6080] hover:text-white border border-transparent'
+        : 'bg-slate-100 text-slate-500 hover:text-slate-800 border border-transparent'
     }`
 
-  // ✅ TEMP: login check commented out — uncomment when done making changes
-  // if (!user) {
-  //   return (
-  //     <LoginPage
-  //       onLogin={handleLogin}
-  //       theme={theme}
-  //       onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
-  //     />
-  //   )
-  // }
+  // Show login page if not logged in
+  if (!user) {
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        theme={theme}
+        onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+      />
+    )
+  }
 
   return (
     <div
       className="min-h-screen font-body transition-colors duration-300"
       style={{ background: bg, color: textMain }}
     >
+
+      {/* ── SESSION TIMEOUT WARNING TOAST ───────────────────────────── */}
+      {sessionWarning && (
+        <div
+          className="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl"
+          style={{
+            background: isDark ? '#1a0a00' : '#fffbeb',
+            borderColor: '#ffb80060',
+            boxShadow: '0 0 30px #ffb80030'
+          }}
+        >
+          <Clock size={16} className="text-amber-400 flex-shrink-0" />
+          <div>
+            <p className="text-xs font-mono font-bold text-amber-400">
+              Session expiring soon
+            </p>
+            <p className="text-[10px] font-mono" style={{ color: isDark ? '#ffb80080' : '#92400e' }}>
+              You'll be logged out in 1 minute due to inactivity
+            </p>
+          </div>
+          <button
+            onClick={resetTimer}
+            className="px-3 py-1 rounded-lg text-xs font-mono font-bold border border-amber-500/50 text-amber-400 hover:bg-amber-500/20 transition-all"
+          >
+            Stay
+          </button>
+        </div>
+      )}
+
       {/* War Room overlay */}
       {warRoom && (
         <WarRoom
@@ -131,13 +196,12 @@ export default function App() {
 
           {/* Stress score badge */}
           <div
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${
-              stressScore?.overall > 70
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${stressScore?.overall > 70
                 ? 'border-red-500/40 bg-red-500/10'
                 : stressScore?.overall > 50
-                ? 'border-amber-500/40 bg-amber-500/10'
-                : ''
-            }`}
+                  ? 'border-amber-500/40 bg-amber-500/10'
+                  : ''
+              }`}
             style={
               !(stressScore?.overall > 50)
                 ? { borderColor: borderCol, background: surface }
@@ -151,8 +215,8 @@ export default function App() {
                   stressScore?.overall > 70
                     ? '#ff3b5c'
                     : stressScore?.overall > 50
-                    ? '#ffb800'
-                    : '#00ff88',
+                      ? '#ffb800'
+                      : '#00ff88',
               }}
             />
             <span className="text-sm font-mono font-bold" style={{ color: textMain }}>
@@ -170,7 +234,7 @@ export default function App() {
               Normal
             </button>
             <button onClick={() => setScenario('opportunity')} className={scenarioBtnClass('opportunity')}>
-              🚀 Opportunity
+              Opportunity
             </button>
             <button onClick={() => setScenario('crisis')} className={scenarioBtnClass('crisis')}>
               ⚠ Crisis
@@ -183,11 +247,10 @@ export default function App() {
             {/* War Room button */}
             <button
               onClick={() => setWarRoom(true)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
-                crisisCount > 0 || stressScore?.overall > 75
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${crisisCount > 0 || stressScore?.overall > 75
                   ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse'
                   : ''
-              }`}
+                }`}
               style={
                 !(crisisCount > 0 || stressScore?.overall > 75)
                   ? { background: surface, borderColor: borderCol, color: textMuted }
@@ -224,11 +287,10 @@ export default function App() {
                 </span>
               </div>
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-bold border ${
-                  user.role === 'owner'
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-bold border ${user.role === 'owner'
                     ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
                     : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                }`}
+                  }`}
               >
                 {user.name.charAt(0)}
               </div>
@@ -258,26 +320,22 @@ export default function App() {
             className="flex items-center gap-1 rounded-xl p-1 border"
             style={{ background: surface, borderColor: borderCol }}
           >
-            <button
-              onClick={() => setRole('owner')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all ${
-                role === 'owner' ? 'bg-cyan-400 text-[#080c14] font-bold' : ''
-              }`}
-              style={role !== 'owner' ? { color: textMuted } : {}}
-            >
-              <User size={11} />
-              Business Owner
-            </button>
-            <button
-              onClick={() => setRole('ops')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono transition-all ${
-                role === 'ops' ? 'bg-cyan-400 text-[#080c14] font-bold' : ''
-              }`}
-              style={role !== 'ops' ? { color: textMuted } : {}}
-            >
-              <Settings size={11} />
-              Ops Manager
-            </button>
+            {user.role === 'owner' && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono bg-cyan-400 text-[#080c14] font-bold"
+              >
+                <User size={11} />
+                Business Owner
+              </button>
+            )}
+            {user.role === 'ops' && (
+              <button
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono bg-cyan-400 text-[#080c14] font-bold"
+              >
+                <Settings size={11} />
+                Ops Manager
+              </button>
+            )}
           </div>
 
           {/* Mobile scenario switcher */}
