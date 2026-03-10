@@ -8,7 +8,8 @@ import LoginPage from './pages/LoginPage'
 import { getStressLabel } from './lib/dataEngine'
 
 export default function App() {
-  const [user, setUser] = useState(null)
+  // ✅ TEMP: dummy user to skip login — change back to useState(null) when done
+  const [user, setUser] = useState({ name: 'Test User', role: 'owner', title: 'Business Owner' })
   const [role, setRole] = useState('owner')
   const [scenario, setScenario] = useState('normal')
   const [warRoom, setWarRoom] = useState(false)
@@ -66,22 +67,24 @@ export default function App() {
           ? 'bg-red-500/20 text-red-400 border border-red-500/50'
           : s === 'opportunity'
           ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-          : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50'
+          : isDark
+            ? 'bg-white/10 text-white border border-white/40'
+            : 'bg-white text-slate-900 border border-slate-400'
         : isDark
           ? 'bg-[#1a2540] text-[#4a6080] hover:text-white border border-transparent'
           : 'bg-slate-100 text-slate-500 hover:text-slate-800 border border-transparent'
     }`
 
-  // Show login page if not logged in
-  if (!user) {
-    return (
-      <LoginPage
-        onLogin={handleLogin}
-        theme={theme}
-        onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
-      />
-    )
-  }
+  // ✅ TEMP: login check commented out — uncomment when done making changes
+  // if (!user) {
+  //   return (
+  //     <LoginPage
+  //       onLogin={handleLogin}
+  //       theme={theme}
+  //       onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+  //     />
+  //   )
+  // }
 
   return (
     <div
@@ -237,12 +240,6 @@ export default function App() {
               >
                 <LogOut size={13} />
               </button>
-            </div>
-
-            {/* Live indicator */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-green-500/10 border border-green-500/20">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="text-[10px] font-mono text-green-400">LIVE</span>
             </div>
 
           </div>
