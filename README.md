@@ -2,7 +2,7 @@
 
 > **HORIZON 1.0** · Vidyavardhini's College of Engineering & Technology
 
-A real-time business operations dashboard that computes a **Business Stress Score (BSS)** across four key verticals — Sales, Inventory, Support, and Cash Flow — giving SMB owners and operations managers a single unified view of their business health.
+A real-time business operations dashboard that computes a **Business Stress Score (BSS)** across four key verticals  Sales, Inventory, Support, and Cash Flow  giving SMB owners and operations managers a single unified view of their business health.
 
 ---
 
@@ -19,12 +19,6 @@ A real-time business operations dashboard that computes a **Business Stress Scor
 | Ops Manager Dashboard | `screenshots/ops-dashboard.png` |
 | War Room Mode | `screenshots/war-room.png` |
 | Downloaded PDF Report | `screenshots/pdf-report.png` |
-
-**To add screenshots:**
-1. Create a `screenshots/` folder in your project root
-2. Take screenshots of each view
-3. Save them with the filenames above
-4. They will automatically appear in this README on GitHub
 
 ---
 
@@ -49,9 +43,9 @@ A real-time business operations dashboard that computes a **Business Stress Scor
 | Supabase JS SDK | Database queries & live data streaming |
 
 ### Fonts
-- **Syne** — Display headings
-- **DM Sans** — Body text
-- **JetBrains Mono** — Monospace metrics & code
+- **Syne** = Display headings
+- **DM Sans** = Body text
+- **JetBrains Mono** = Monospace metrics & code
 
 ---
 
@@ -315,7 +309,7 @@ The dashboard supports three simulation scenarios switchable from the header:
 |----------|-------------|
 | **Normal** | Typical SMB operations with moderate fluctuations |
 | **Opportunity** | High revenue, low stress — growth phase |
-| **Crisis** | Low revenue, stockouts, high tickets — war room triggers |
+| **Crisis** | Low revenue, stockouts, high tickets  war room triggers |
 
 ---
 
