@@ -13,9 +13,10 @@ A real-time business operations dashboard that computes a **Business Stress Scor
 
 | View | Screenshot |
 |------|------------|
-| Login Page | `screenshots/login.png` |
-| Owner Dashboard — Normal | `screenshots/owner-normal.png` |
-| Owner Dashboard — Crisis | `screenshots/owner-crisis.png` |
+| Login Page |<img width="1907" height="957" alt="image" src="https://github.com/user-attachments/assets/a51a3e44-3a2c-4ecb-a18c-308f8ac687fb" />
+ |
+| Owner Dashboard  (Normal) | `screenshots/owner-normal.png` |
+| Owner Dashboard  (Crisis) | `screenshots/owner-crisis.png` |
 | Ops Manager Dashboard | `screenshots/ops-dashboard.png` |
 | War Room Mode | `screenshots/war-room.png` |
 | Downloaded PDF Report | `screenshots/pdf-report.png` |
