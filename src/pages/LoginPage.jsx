@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Activity, Eye, EyeOff, Lock, Mail, User, Sun, Moon, AlertCircle, CheckCircle } from 'lucide-react'
+import { supabase, OWNER_EMAIL, OWNER_PASSWORD, OWNER_PROFILE } from '../lib/supabase'
 
 export default function LoginPage({ onLogin, theme, onToggleTheme }) {
   const isDark = theme === 'dark'
@@ -14,7 +15,6 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
   const [isRegister, setIsRegister] = useState(false)
-  const [registeredUsers, setRegisteredUsers] = useState([])
 
   const surface   = isDark ? '#0d1526' : '#ffffff'
   const borderCol = isDark ? '#1a2540' : '#e2e8f0'
@@ -37,71 +37,113 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
     setScreen('login')
   }
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+  // ── OWNER LOGIN (hardcoded) ────────────────────────────────────────
+  const handleOwnerLogin = async () => {
     setError('')
     setLoading(true)
 
     await new Promise(r => setTimeout(r, 800))
 
-    const user = registeredUsers.find(
-      u => u.email === email.toLowerCase() &&
-      u.password === password &&
-      u.role === selectedRole
-    )
-
-    if (user) {
-      onLogin(user)
-    } else {
-      setError('Invalid email or password. Please register first.')
+    if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+      setError('Invalid email or password.')
+      setLoading(false)
+      return
+    }
+    if (password !== OWNER_PASSWORD) {
+      setError('Invalid email or password.')
+      setLoading(false)
+      return
     }
 
+    onLogin(OWNER_PROFILE)
     setLoading(false)
   }
 
-  const handleRegister = async (e) => {
-    e.preventDefault()
+  // ── MANAGER SIGN IN (Supabase) ────────────────────────────────────
+  const handleManagerSignIn = async () => {
     setError('')
     setLoading(true)
 
-    await new Promise(r => setTimeout(r, 800))
+    const { data, error: err } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    if (err) {
+      setError('Invalid email or password. Please register first.')
+      setLoading(false)
+      return
+    }
+
+    const meta = data.user?.user_metadata
+    onLogin({
+      name: meta?.name || email.split('@')[0],
+      role: 'ops',
+      title: 'Operations Manager',
+    })
+    setLoading(false)
+  }
+
+  // ── MANAGER REGISTER (Supabase) ───────────────────────────────────
+  const handleManagerRegister = async () => {
+    setError('')
+    setLoading(true)
 
     if (!name.trim()) {
       setError('Please enter your full name.')
       setLoading(false)
       return
     }
-
     if (password.length < 6) {
       setError('Password must be at least 6 characters.')
       setLoading(false)
       return
     }
 
-    const exists = registeredUsers.find(
-      u => u.email === email.toLowerCase()
-    )
-    if (exists) {
+    const { data, error: err } = await supabase.auth.signUp({
+      email: email.trim(),
+      password,
+      options: {
+        data: { name: name.trim(), role: 'ops', title: 'Operations Manager' }
+      }
+    })
+
+    if (err) {
+      if (err.message.includes('already registered')) {
+        setError('An account with this email already exists.')
+      } else {
+        setError(err.message)
+      }
+      setLoading(false)
+      return
+    }
+
+    if (data?.user?.identities?.length === 0) {
       setError('An account with this email already exists.')
       setLoading(false)
       return
     }
 
-    const newUser = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
-      password,
-      role: selectedRole,
-      title: selectedRole === 'owner' ? 'Business Owner' : 'Operations Manager',
-    }
-
-    setRegisteredUsers(prev => [...prev, newUser])
     setSuccess('Account created! You can now sign in.')
     setIsRegister(false)
     setPassword('')
     setName('')
     setLoading(false)
+  }
+
+  // ── Form submit router ─────────────────────────────────────────────
+  const handleLogin = async (e) => {
+    e.preventDefault()
+    if (selectedRole === 'owner') {
+      await handleOwnerLogin()
+    } else {
+      await handleManagerSignIn()
+    }
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    await handleManagerRegister()
   }
 
   // ── Role Selection Screen ──────────────────────────────────────────────
@@ -312,8 +354,8 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
         {/* Form */}
         <form onSubmit={isRegister ? handleRegister : handleLogin} className="space-y-4">
 
-          {/* Name — only on register */}
-          {isRegister && (
+          {/* Name — only on register, and only for manager */}
+          {isRegister && !isOwner && (
             <div>
               <label className="block text-xs font-mono mb-1.5" style={{ color: textMuted }}>
                 FULL NAME
@@ -412,32 +454,34 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
           </button>
         </form>
 
-        {/* Toggle login / register */}
-        <div className="mt-5 pt-4 border-t text-center" style={{ borderColor: borderCol }}>
-          {isRegister ? (
-            <p className="text-xs font-mono" style={{ color: textMuted }}>
-              Already have an account?{' '}
-              <button
-                onClick={() => { setIsRegister(false); setError(''); setSuccess('') }}
-                className="font-bold"
-                style={{ color: accentColor }}
-              >
-                Sign In
-              </button>
-            </p>
-          ) : (
-            <p className="text-xs font-mono" style={{ color: textMuted }}>
-              Don't have an account?{' '}
-              <button
-                onClick={() => { setIsRegister(true); setError(''); setSuccess('') }}
-                className="font-bold"
-                style={{ color: accentColor }}
-              >
-                Register
-              </button>
-            </p>
-          )}
-        </div>
+        {/* Toggle login / register — hidden for owner */}
+        {!isOwner && (
+          <div className="mt-5 pt-4 border-t text-center" style={{ borderColor: borderCol }}>
+            {isRegister ? (
+              <p className="text-xs font-mono" style={{ color: textMuted }}>
+                Already have an account?{' '}
+                <button
+                  onClick={() => { setIsRegister(false); setError(''); setSuccess('') }}
+                  className="font-bold"
+                  style={{ color: accentColor }}
+                >
+                  Sign In
+                </button>
+              </p>
+            ) : (
+              <p className="text-xs font-mono" style={{ color: textMuted }}>
+                Don't have an account?{' '}
+                <button
+                  onClick={() => { setIsRegister(true); setError(''); setSuccess('') }}
+                  className="font-bold"
+                  style={{ color: accentColor }}
+                >
+                  Register
+                </button>
+              </p>
+            )}
+          </div>
+        )}
 
         <p className="text-center text-[10px] font-mono mt-4" style={{ color: isDark ? '#1a2540' : '#cbd5e1' }}>
           HORIZON 1.0 · Vidyavardhini's College of Engineering

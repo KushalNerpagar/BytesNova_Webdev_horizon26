@@ -7,9 +7,23 @@ import WarRoom from './components/WarRoom'
 import LoginPage from './pages/LoginPage'
 import { getStressLabel } from './lib/dataEngine'
 import { downloadDashboardPDF } from './lib/downloadPDF'
+import { supabase } from './lib/supabase'
 
 export default function App() {
   const [user, setUser] = useState(null)
+//   useEffect(() => {
+//   supabase.auth.getSession().then(({ data: { session } }) => {
+//     if (session?.user) {
+//       const meta = session.user.user_metadata
+//       setUser({
+//         name: meta?.name || session.user.email.split('@')[0],
+//         role: meta?.role || 'ops',
+//         title: meta?.title || 'Operations Manager',
+//       })
+//       setRole(meta?.role || 'ops')
+//     }
+//   })
+// }, [])
   const [role, setRole] = useState('owner')
   const [scenario, setScenario] = useState('normal')
   const [warRoom, setWarRoom] = useState(false)
@@ -17,6 +31,20 @@ export default function App() {
   const [theme, setTheme] = useState('dark')
   const [sessionWarning, setSessionWarning] = useState(false)
   const [pdfGenerating, setPdfGenerating] = useState(false)
+
+  useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      const meta = session.user.user_metadata
+      setUser({
+        name: meta?.name || session.user.email.split('@')[0],
+        role: meta?.role || 'ops',
+        title: meta?.title || 'Operations Manager',
+      })
+      setRole(meta?.role || 'ops')
+    }
+  })
+}, [])
 
   const isDark = theme === 'dark'
 
