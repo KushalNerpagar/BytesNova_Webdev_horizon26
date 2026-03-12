@@ -33,12 +33,42 @@ export default function App() {
   const [pdfGenerating, setPdfGenerating] = useState(false)
 
 // Restore session on page refresh ONLY — not on fresh start
-useEffect(() => {
-  // Only restore session on F5 refresh, not on fresh server start
-  const isRefresh = sessionStorage.getItem('app_started')
+// useEffect(() => {
+//   // Only restore session on F5 refresh, not on fresh server start
+//   const isRefresh = sessionStorage.getItem('app_started')
   
+//   if (isRefresh) {
+//     supabase.auth.getSession().then(({ data: { session } }) => {
+//       if (session?.user) {
+//         const meta = session.user.user_metadata
+//         setUser({
+//           name: meta?.name || session.user.email.split('@')[0],
+//           role: meta?.role || 'ops',
+//           title: meta?.title || 'Operations Manager',
+//         })
+//         setRole(meta?.role || 'ops')
+//       }
+//     })
+//   } else {
+//     supabase.auth.signOut()
+//     sessionStorage.setItem('app_started', 'true')
+//   }
+// }, [])
+
+useEffect(() => {
+  const isRefresh = sessionStorage.getItem('app_started')
+
   if (isRefresh) {
-    // Page was refreshed — restore session
+    // Check owner session first
+    const ownerSession = sessionStorage.getItem('owner_session')
+    if (ownerSession) {
+      const profile = JSON.parse(ownerSession)
+      setUser(profile)
+      setRole(profile.role)
+      return
+    }
+
+    // Then check Supabase session for manager
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         const meta = session.user.user_metadata
@@ -51,8 +81,9 @@ useEffect(() => {
       }
     })
   } else {
-    // Fresh start — clear any existing session and show login
+    // Fresh start — clear everything and show login
     supabase.auth.signOut()
+    sessionStorage.removeItem('owner_session')
     sessionStorage.setItem('app_started', 'true')
   }
 }, [])
@@ -103,6 +134,7 @@ useEffect(() => {
 
   const handleLogout = useCallback(async () => {
   await supabase.auth.signOut()
+  sessionStorage.removeItem('owner_session')
   setUser(null)
   setWarRoom(false)
   setSessionWarning(false)

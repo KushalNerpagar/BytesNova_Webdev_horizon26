@@ -38,26 +38,49 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
   }
 
   // ── OWNER LOGIN (hardcoded) ────────────────────────────────────────
+  // const handleOwnerLogin = async () => {
+  //   setError('')
+  //   setLoading(true)
+
+  //   await new Promise(r => setTimeout(r, 800))
+
+  //   if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+  //     setError('Invalid email or password.')
+  //     setLoading(false)
+  //     return
+  //   }
+  //   if (password !== OWNER_PASSWORD) {
+  //     setError('Invalid email or password.')
+  //     setLoading(false)
+  //     return
+  //   }
+
+  //   onLogin(OWNER_PROFILE)
+  //   setLoading(false)
+  // }
+
   const handleOwnerLogin = async () => {
-    setError('')
-    setLoading(true)
+  setError('')
+  setLoading(true)
 
-    await new Promise(r => setTimeout(r, 800))
+  await new Promise(r => setTimeout(r, 800))
 
-    if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
-      setError('Invalid email or password.')
-      setLoading(false)
-      return
-    }
-    if (password !== OWNER_PASSWORD) {
-      setError('Invalid email or password.')
-      setLoading(false)
-      return
-    }
-
-    onLogin(OWNER_PROFILE)
+  if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+    setError('Invalid email or password.')
     setLoading(false)
+    return
   }
+  if (password !== OWNER_PASSWORD) {
+    setError('Invalid email or password.')
+    setLoading(false)
+    return
+  }
+
+  // Save owner session to sessionStorage
+  sessionStorage.setItem('owner_session', JSON.stringify(OWNER_PROFILE))
+  onLogin(OWNER_PROFILE)
+  setLoading(false)
+}
 
   // ── MANAGER SIGN IN (Supabase) ────────────────────────────────────
   const handleManagerSignIn = async () => {
