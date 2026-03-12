@@ -32,20 +32,30 @@ export default function App() {
   const [sessionWarning, setSessionWarning] = useState(false)
   const [pdfGenerating, setPdfGenerating] = useState(false)
 
-  useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (session?.user) {
-      const meta = session.user.user_metadata
-      setUser({
-        name: meta?.name || session.user.email.split('@')[0],
-        role: meta?.role || 'ops',
-        title: meta?.title || 'Operations Manager',
-      })
-      setRole(meta?.role || 'ops')
-    }
-  })
+// Restore session on page refresh ONLY — not on fresh start
+useEffect(() => {
+  // Only restore session on F5 refresh, not on fresh server start
+  const isRefresh = sessionStorage.getItem('app_started')
+  
+  if (isRefresh) {
+    // Page was refreshed — restore session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const meta = session.user.user_metadata
+        setUser({
+          name: meta?.name || session.user.email.split('@')[0],
+          role: meta?.role || 'ops',
+          title: meta?.title || 'Operations Manager',
+        })
+        setRole(meta?.role || 'ops')
+      }
+    })
+  } else {
+    // Fresh start — clear any existing session and show login
+    supabase.auth.signOut()
+    sessionStorage.setItem('app_started', 'true')
+  }
 }, [])
-
   const isDark = theme === 'dark'
 
   const { metrics, alerts, stressScore, history, loading, resolveAlert } = useRealtimeData(scenario)
@@ -85,11 +95,18 @@ export default function App() {
     setRole(loggedUser.role)
   }
 
-  const handleLogout = useCallback(() => {
-    setUser(null)
-    setWarRoom(false)
-    setSessionWarning(false)
-  }, [])
+  // const handleLogout = useCallback(() => {
+  //   setUser(null)
+  //   setWarRoom(false)
+  //   setSessionWarning(false)
+  // }, [])
+
+  const handleLogout = useCallback(async () => {
+  await supabase.auth.signOut()
+  setUser(null)
+  setWarRoom(false)
+  setSessionWarning(false)
+}, [])
 
   // ── Session Timeout (5 minutes inactivity) ──────────────────────────
   const SESSION_TIMEOUT = 5 * 60 * 1000
