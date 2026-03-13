@@ -36,28 +36,13 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
     resetForm()
     setScreen('login')
   }
-
-  // ── OWNER LOGIN (hardcoded) ────────────────────────────────────────
-  // const handleOwnerLogin = async () => {
-  //   setError('')
-  //   setLoading(true)
-
-  //   await new Promise(r => setTimeout(r, 800))
-
-  //   if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
-  //     setError('Invalid email or password.')
-  //     setLoading(false)
-  //     return
-  //   }
-  //   if (password !== OWNER_PASSWORD) {
-  //     setError('Invalid email or password.')
-  //     setLoading(false)
-  //     return
-  //   }
-
-  //   onLogin(OWNER_PROFILE)
-  //   setLoading(false)
-  // }
+  const handleGuestLogin = () => {
+  onLogin({
+    name: 'Guest',
+    role: 'owner',
+    title: 'Guest Viewer',
+  })
+}
 
   const handleOwnerLogin = async () => {
   setError('')
@@ -267,6 +252,29 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
               </p>
               <div className="mt-4 text-xs font-mono text-purple-400">
                 Sign in as Manager →
+              </div>
+            </button>
+            <button
+              onClick={handleGuestLogin}
+              className="p-6 rounded-2xl border text-left transition-all hover:scale-105 sm:col-span-2"
+              style={{ background: surface, borderColor: borderCol }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#ffb800'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = borderCol}
+            >
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 border"
+                style={{ background: '#ffb80015', borderColor: '#ffb80030' }}
+              >
+                <User size={22} style={{ color: '#ffb800' }} />
+              </div>
+              <h2 className="text-lg font-display font-bold mb-1" style={{ color: textMain }}>
+                Guest
+              </h2>
+              <p className="text-xs font-body leading-relaxed" style={{ color: textMuted }}>
+                Explore the dashboard without an account. View business health overview in read-only mode.
+              </p>
+              <div className="mt-4 text-xs font-mono" style={{ color: '#ffb800' }}>
+                Continue as Guest →
               </div>
             </button>
           </div>
