@@ -10,6 +10,7 @@ import { getStressLabel } from './lib/dataEngine'
 import { downloadDashboardPDF } from './lib/downloadPDF'
 import DataDiffPanel from './components/DataDiffPanel'
 import ManagerHistoryPanel from './components/ManagerHistoryPanel'
+import ManagerListPanel from './components/ManagerListPanel'
 import { logManagerActivity } from './lib/managerHistory'
 import { supabase } from './lib/supabase'
 
@@ -498,8 +499,9 @@ export default function App() {
               theme={theme}
               changedKeys={changedKeys}
             />
-            {/* Manager history — only visible to owner */}
-            <div className="mt-6">
+            {/* Manager list + history — only visible to owner */}
+            <div className="mt-6 space-y-4">
+              <ManagerListPanel theme={theme} />
               <ManagerHistoryPanel theme={theme} />
             </div>
           </div>

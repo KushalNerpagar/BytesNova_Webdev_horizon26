@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Activity, Eye, EyeOff, Lock, Mail, User, Sun, Moon, AlertCircle, CheckCircle } from 'lucide-react'
 import { supabase, OWNER_EMAIL, OWNER_PASSWORD, OWNER_PROFILE } from '../lib/supabase'
+import { isManagerApproved, markManagerRegistered } from '../lib/Managerregistry'
 
 export default function LoginPage({ onLogin, theme, onToggleTheme }) {
   const isDark = theme === 'dark'
@@ -36,41 +37,48 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
     resetForm()
     setScreen('login')
   }
+
   const handleGuestLogin = () => {
-  onLogin({
-    name: 'Guest',
-    role: 'owner',
-    title: 'Guest Viewer',
-  })
-}
+    onLogin({
+      name: 'Guest',
+      role: 'owner',
+      title: 'Guest Viewer',
+    })
+  }
 
   const handleOwnerLogin = async () => {
-  setError('')
-  setLoading(true)
+    setError('')
+    setLoading(true)
 
-  await new Promise(r => setTimeout(r, 800))
+    await new Promise(r => setTimeout(r, 800))
 
-  if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
-    setError('Invalid email or password.')
+    if (email.trim().toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
+      setError('Invalid email or password.')
+      setLoading(false)
+      return
+    }
+    if (password !== OWNER_PASSWORD) {
+      setError('Invalid email or password.')
+      setLoading(false)
+      return
+    }
+
+    sessionStorage.setItem('owner_session', JSON.stringify(OWNER_PROFILE))
+    onLogin(OWNER_PROFILE)
     setLoading(false)
-    return
   }
-  if (password !== OWNER_PASSWORD) {
-    setError('Invalid email or password.')
-    setLoading(false)
-    return
-  }
-
-  // Save owner session to sessionStorage
-  sessionStorage.setItem('owner_session', JSON.stringify(OWNER_PROFILE))
-  onLogin(OWNER_PROFILE)
-  setLoading(false)
-}
 
   // ── MANAGER SIGN IN (Supabase) ────────────────────────────────────
   const handleManagerSignIn = async () => {
     setError('')
     setLoading(true)
+
+    // Check owner's approved list before allowing login
+    if (!isManagerApproved(email.trim())) {
+      setError('Access denied. Your email has not been approved by the business owner. Contact the owner to get added.')
+      setLoading(false)
+      return
+    }
 
     const { data, error: err } = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -108,6 +116,13 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
       return
     }
 
+    // Check owner's approved list before allowing registration
+    if (!isManagerApproved(email.trim())) {
+      setError('Access denied. Your email has not been approved by the business owner. Contact the owner to get added.')
+      setLoading(false)
+      return
+    }
+
     const { data, error: err } = await supabase.auth.signUp({
       email: email.trim(),
       password,
@@ -133,6 +148,7 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
     }
 
     setSuccess('Account created! You can now sign in.')
+    markManagerRegistered(email.trim(), name.trim())  // ← update registry with registered status
     setIsRegister(false)
     setPassword('')
     setName('')
@@ -254,6 +270,8 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
                 Sign in as Manager →
               </div>
             </button>
+
+            {/* Guest card */}
             <button
               onClick={handleGuestLogin}
               className="p-6 rounded-2xl border text-left transition-all hover:scale-105 sm:col-span-2"
@@ -365,6 +383,19 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
             </span>
           </div>
         </div>
+
+        {/* Manager approval notice */}
+        {!isOwner && (
+          <div
+            className="flex items-start gap-2 rounded-xl p-3 border mb-4"
+            style={{ borderColor: '#a78bfa30', background: '#a78bfa08' }}
+          >
+            <AlertCircle size={13} className="text-purple-400 mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] font-mono leading-relaxed" style={{ color: textMuted }}>
+              Only owner-approved emails can register or sign in. Contact the business owner to get access.
+            </p>
+          </div>
+        )}
 
         {/* Success message */}
         {success && (
