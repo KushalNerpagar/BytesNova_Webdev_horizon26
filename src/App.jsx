@@ -388,6 +388,29 @@ if (!user) {
             {/* Date Filter */}
             <DateFilter value={dateFilter} onChange={setDateFilter} theme={theme} />
 
+            {/* Alert History + Sound toggle */}
+            <AlertHistoryPanel
+              dispatched={dispatched}
+              setDispatched={setDispatched}
+              theme={theme}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
+            />
+
+            {/* Date Filter */}
+            <DateFilter value={dateFilter} onChange={setDateFilter} theme={theme} />
+
+            {/* Advanced Features */}
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              style={{ background: surface, borderColor: borderCol, color: textMuted }}
+              title="Advanced Features"
+            >
+              <Activity size={12} />
+              <span className="hidden sm:inline">Advanced</span>
+            </button>
+
             {/* PDF Download Button */}
             <button
               id="pdf-download-btn"
