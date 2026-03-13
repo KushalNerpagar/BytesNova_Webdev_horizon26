@@ -35,7 +35,7 @@ Return ONLY valid JSON (no markdown) with this exact structure:
 
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514', max_tokens: 1000,
           messages: [{ role: 'user', content: prompt }]
@@ -387,7 +387,7 @@ Return ONLY valid JSON array (no markdown), each object: {"title": "string", "de
 
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514', max_tokens: 1000,
           messages: [{ role: 'user', content: prompt }]
@@ -881,7 +881,7 @@ function WeeklyReport({ metrics, stressScore, theme }) {
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514', max_tokens: 1000,
           messages: [{
@@ -981,14 +981,9 @@ export default function AdvancedFeatures({ metrics, stressScore, alerts, history
     { id: 'rootcause', label: 'Root Cause AI', icon: Brain },
     { id: 'heatmap', label: 'Heatmap', icon: Thermometer },
     { id: 'forecast', label: 'Forecasting', icon: TrendingUp },
-    { id: 'stress', label: 'Stress Forecast', icon: Activity },
     { id: 'recs', label: 'Recommendations', icon: Target },
     { id: 'sentiment', label: 'Sentiment', icon: MessageSquare },
     { id: 'team', label: 'Team Score', icon: Users },
-    { id: 'supplier', label: 'Supplier Risk', icon: Truck },
-    { id: 'competitor', label: 'Benchmarking', icon: Globe },
-    { id: 'weekly', label: 'Weekly Report', icon: FileText },
-    { id: 'digital', label: 'Digital Twin', icon: GitBranch },
   ]
 
   return (
@@ -1023,14 +1018,9 @@ export default function AdvancedFeatures({ metrics, stressScore, alerts, history
         {activeTab === 'rootcause' && <RootCauseAnalysis stressScore={stressScore} metrics={metrics} theme={theme} />}
         {activeTab === 'heatmap' && <HeatmapCalendar history={history} theme={theme} />}
         {activeTab === 'forecast' && <FinancialForecast metrics={metrics} theme={theme} />}
-        {activeTab === 'stress' && <BusinessStressForecast stressScore={stressScore} theme={theme} />}
         {activeTab === 'recs' && <SmartRecommendations stressScore={stressScore} metrics={metrics} theme={theme} />}
         {activeTab === 'sentiment' && <CustomerSentiment metrics={metrics} theme={theme} />}
         {activeTab === 'team' && <TeamProductivity theme={theme} />}
-        {activeTab === 'supplier' && <SupplierRisk theme={theme} />}
-        {activeTab === 'competitor' && <CompetitorBenchmark metrics={metrics} theme={theme} />}
-        {activeTab === 'weekly' && <WeeklyReport metrics={metrics} stressScore={stressScore} theme={theme} />}
-        {activeTab === 'digital' && <DigitalTwin metrics={metrics} stressScore={stressScore} theme={theme} />}
       </div>
 
       <style>{`

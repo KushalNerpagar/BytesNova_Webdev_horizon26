@@ -294,7 +294,7 @@ if (!user) {
         className="border-b sticky top-0 z-40 backdrop-blur-sm transition-colors duration-300"
         style={{ background: headerBg, borderColor: borderCol }}
       >
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 overflow-x-auto">
 
           {/* Logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -365,7 +365,7 @@ if (!user) {
 
           {/* Scenario switcher — desktop only */}
           <div
-            className="hidden md:flex items-center gap-1 rounded-xl p-1 border"
+            className="hidden lg:flex items-center gap-1 rounded-xl p-1 border"
             style={{ background: surface, borderColor: borderCol }}
           >
             <button onClick={() => { setScenario('normal'); if(user?.role==='ops') logManagerActivity('scenario_change', 'Switched to Normal scenario') }} className={scenarioBtnClass('normal')}>Normal</button>
@@ -374,7 +374,19 @@ if (!user) {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0">
+
+            {/* Alert History + Sound toggle */}
+            <AlertHistoryPanel
+              dispatched={dispatched}
+              setDispatched={setDispatched}
+              theme={theme}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
+            />
+
+            {/* Date Filter */}
+            <DateFilter value={dateFilter} onChange={setDateFilter} theme={theme} />
 
             {/* Alert History + Sound toggle */}
             <AlertHistoryPanel
@@ -404,30 +416,31 @@ if (!user) {
               id="pdf-download-btn"
               onClick={handleDownloadPDF}
               disabled={pdfGenerating || loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: surface, borderColor: borderCol, color: textMuted }}
               title="Download Dashboard as PDF"
             >
               <Download size={12} />
-              <span>{pdfGenerating ? 'Generating…' : 'Download PDF'}</span>
+              <span className="hidden lg:inline">{pdfGenerating ? 'Generating…' : 'PDF'}</span>
             </button>
 
-            {/* ✅ CHANGE 4 — Data Input button (hidden for guests) */}
+            {/* Data Input button (hidden for guests) */}
             {user?.title !== 'Guest Viewer' && (
             <button
               onClick={() => setDataInput(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
               style={{ background: surface, borderColor: borderCol, color: textMuted }}
+              title="Data Input"
             >
               <Database size={12} />
-              <span className="hidden sm:inline">Data Input</span>
+              <span className="hidden lg:inline">Data</span>
             </button>
             )}
 
             {/* War Room button */}
             <button
               onClick={() => { setWarRoom(true); if(user?.role==='ops') logManagerActivity('war_room', `War Room activated — BSS: ${stressScore?.overall}, Crisis alerts: ${crisisCount}`) }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all ${
                 crisisCount > 0 || stressScore?.overall > 75
                   ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse'
                   : ''
@@ -437,9 +450,10 @@ if (!user) {
                   ? { background: surface, borderColor: borderCol, color: textMuted }
                   : {}
               }
+              title="War Room"
             >
               <Zap size={12} />
-              <span className="hidden sm:inline">War Room</span>
+              <span className="hidden lg:inline">War Room</span>
               {crisisCount > 0 && (
                 <span className="bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                   {crisisCount}
@@ -457,24 +471,21 @@ if (!user) {
               {isDark ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
-            {/* User info + Logout */}
-            <div className="flex items-center gap-2 pl-2 border-l" style={{ borderColor: borderCol }}>
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-mono font-semibold" style={{ color: textMain }}>{user.name}</span>
-                <span className="text-[10px] font-mono" style={{ color: textMuted }}>{user.title}</span>
-              </div>
+            {/* User avatar + Logout — always visible */}
+            <div className="flex items-center gap-1 pl-1 border-l flex-shrink-0" style={{ borderColor: borderCol }}>
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-bold border ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-bold border flex-shrink-0 ${
                   user.role === 'owner'
                     ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
                     : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                 }`}
+                title={`${user.name} — ${user.title}`}
               >
                 {user.name.charAt(0)}
               </div>
               <button
                 onClick={handleLogout}
-                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-all hover:border-red-500/50 hover:text-red-400"
+                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-all hover:border-red-500/50 hover:text-red-400 flex-shrink-0"
                 style={{ background: surface, borderColor: borderCol, color: textMuted }}
                 title="Logout"
               >
@@ -516,11 +527,19 @@ if (!user) {
             <button onClick={() => setScenario('crisis')} className={scenarioBtnClass('crisis')}>⚠</button>
           </div>
 
-          <div className="flex items-center gap-1 text-xs font-mono" style={{ color: textMuted }}>
+          <div className="flex items-center gap-2 text-xs font-mono" style={{ color: textMuted }}>
             <RefreshCw size={10} className={pulse && dataSource !== 'manual' ? 'animate-spin text-cyan-400' : ''} />
             <span className="hidden sm:inline">
               {dataSource === 'manual' ? 'Static — your data' : 'Updates every 3s'}
             </span>
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              style={{ background: surface, borderColor: borderCol, color: textMuted, fontSize: 10 }}
+            >
+              <Activity size={10} />
+              <span>Advanced</span>
+            </button>
           </div>
 
         </div>
