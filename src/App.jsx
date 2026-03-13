@@ -5,6 +5,8 @@ import { useRealtimeData } from './hooks/useRealtimeData'
 import OwnerDashboard from './pages/OwnerDashboard'
 import OperationsDashboard from './pages/OperationsDashboard'
 import WarRoom from './components/WarRoom'
+import SplashScreen from './components/SplashScreen'
+import { LOGO_URI } from './lib/logoData'
 import LoginPage from './pages/LoginPage'
 import { getStressLabel } from './lib/dataEngine'
 import { downloadDashboardPDF } from './lib/downloadPDF'
@@ -13,6 +15,10 @@ import ManagerHistoryPanel from './components/ManagerHistoryPanel'
 import ManagerListPanel from './components/Managerlistpanel'
 import { logManagerActivity } from './lib/managerHistory'
 import { supabase } from './lib/supabase'
+import AIChatbot from './components/AIChatbot'
+import AlertHistoryPanel, { useSoundAlerts } from './components/AlertHistory'
+import DateFilter from './components/DateFilter'
+import AdvancedFeatures from './components/AdvancedFeatures'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -25,6 +31,10 @@ export default function App() {
   const [theme, setTheme] = useState('dark')
   const [sessionWarning, setSessionWarning] = useState(false)
   const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
+  const [dateFilter, setDateFilter] = useState('today')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  // const [splashDone, setSplashDone] = useState(false)
 
   useEffect(() => {
     const isRefresh = sessionStorage.getItem('app_started')
@@ -59,6 +69,7 @@ export default function App() {
   const isDark = theme === 'dark'
 
   const { metrics, alerts, stressScore, history, loading, resolveAlert, dataSource, changedKeys, demoSnapshot, demoStressSnapshot } = useRealtimeData(scenario, manualData)
+  const { soundEnabled, setSoundEnabled, dispatched, setDispatched } = useSoundAlerts(alerts)
   const { label: stressLabel, color: stressColor } = getStressLabel(stressScore?.overall ?? null)
   const crisisCount = alerts.filter(a => a.type === 'crisis').length
 
@@ -155,15 +166,36 @@ export default function App() {
         : 'bg-slate-100 text-slate-500 hover:text-slate-800 border border-transparent'
     }`
 
-  if (!user) {
-    return (
-      <LoginPage
-        onLogin={handleLogin}
-        theme={theme}
-        onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
-      />
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <LoginPage
+  //       onLogin={handleLogin}
+  //       theme={theme}
+  //       onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+  //     />
+  //   )
+  // }
+//   if (showSplash) {
+//   return (
+//     <SplashScreen
+//       onComplete={() => setShowSplash(false)}
+//       logoSrc={null}
+//     />
+//   )
+// }
+if (showSplash) {
+  return <SplashScreen onComplete={() => setShowSplash(false)} logoSrc={LOGO_URI} />
+}
+
+if (!user) {
+  return (
+    <LoginPage
+      onLogin={handleLogin}
+      theme={theme}
+      onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+    />
+  )
+}
 
   return (
     <div
@@ -262,12 +294,12 @@ export default function App() {
         className="border-b sticky top-0 z-40 backdrop-blur-sm transition-colors duration-300"
         style={{ background: headerBg, borderColor: borderCol }}
       >
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2 overflow-x-auto">
 
           {/* Logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-              <Activity size={16} className="text-cyan-400" />
+              <img src={LOGO_URI} alt="OpsPulse Logo" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <span className="text-base font-display font-bold tracking-tight" style={{ color: textMain }}>
@@ -333,7 +365,7 @@ export default function App() {
 
           {/* Scenario switcher — desktop only */}
           <div
-            className="hidden md:flex items-center gap-1 rounded-xl p-1 border"
+            className="hidden lg:flex items-center gap-1 rounded-xl p-1 border"
             style={{ background: surface, borderColor: borderCol }}
           >
             <button onClick={() => { setScenario('normal'); if(user?.role==='ops') logManagerActivity('scenario_change', 'Switched to Normal scenario') }} className={scenarioBtnClass('normal')}>Normal</button>
@@ -342,37 +374,50 @@ export default function App() {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0">
+
+            {/* Alert History + Sound toggle */}
+            <AlertHistoryPanel
+              dispatched={dispatched}
+              setDispatched={setDispatched}
+              theme={theme}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
+            />
+
+            {/* Date Filter */}
+            <DateFilter value={dateFilter} onChange={setDateFilter} theme={theme} />
 
             {/* PDF Download Button */}
             <button
               id="pdf-download-btn"
               onClick={handleDownloadPDF}
               disabled={pdfGenerating || loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: surface, borderColor: borderCol, color: textMuted }}
               title="Download Dashboard as PDF"
             >
               <Download size={12} />
-              <span>{pdfGenerating ? 'Generating…' : 'Download PDF'}</span>
+              <span className="hidden lg:inline">{pdfGenerating ? 'Generating…' : 'PDF'}</span>
             </button>
 
-            {/* ✅ CHANGE 4 — Data Input button (hidden for guests) */}
+            {/* Data Input button (hidden for guests) */}
             {user?.title !== 'Guest Viewer' && (
             <button
               onClick={() => setDataInput(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
               style={{ background: surface, borderColor: borderCol, color: textMuted }}
+              title="Data Input"
             >
               <Database size={12} />
-              <span className="hidden sm:inline">Data Input</span>
+              <span className="hidden lg:inline">Data</span>
             </button>
             )}
 
             {/* War Room button */}
             <button
               onClick={() => { setWarRoom(true); if(user?.role==='ops') logManagerActivity('war_room', `War Room activated — BSS: ${stressScore?.overall}, Crisis alerts: ${crisisCount}`) }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all ${
+              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-mono border transition-all ${
                 crisisCount > 0 || stressScore?.overall > 75
                   ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse'
                   : ''
@@ -382,9 +427,10 @@ export default function App() {
                   ? { background: surface, borderColor: borderCol, color: textMuted }
                   : {}
               }
+              title="War Room"
             >
               <Zap size={12} />
-              <span className="hidden sm:inline">War Room</span>
+              <span className="hidden lg:inline">War Room</span>
               {crisisCount > 0 && (
                 <span className="bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                   {crisisCount}
@@ -402,24 +448,21 @@ export default function App() {
               {isDark ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
-            {/* User info + Logout */}
-            <div className="flex items-center gap-2 pl-2 border-l" style={{ borderColor: borderCol }}>
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-mono font-semibold" style={{ color: textMain }}>{user.name}</span>
-                <span className="text-[10px] font-mono" style={{ color: textMuted }}>{user.title}</span>
-              </div>
+            {/* User avatar + Logout — always visible */}
+            <div className="flex items-center gap-1 pl-1 border-l flex-shrink-0" style={{ borderColor: borderCol }}>
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-display font-bold border ${
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-display font-bold border flex-shrink-0 ${
                   user.role === 'owner'
                     ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
                     : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                 }`}
+                title={`${user.name} — ${user.title}`}
               >
                 {user.name.charAt(0)}
               </div>
               <button
                 onClick={handleLogout}
-                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-all hover:border-red-500/50 hover:text-red-400"
+                className="w-8 h-8 rounded-lg flex items-center justify-center border transition-all hover:border-red-500/50 hover:text-red-400 flex-shrink-0"
                 style={{ background: surface, borderColor: borderCol, color: textMuted }}
                 title="Logout"
               >
@@ -461,11 +504,19 @@ export default function App() {
             <button onClick={() => setScenario('crisis')} className={scenarioBtnClass('crisis')}>⚠</button>
           </div>
 
-          <div className="flex items-center gap-1 text-xs font-mono" style={{ color: textMuted }}>
+          <div className="flex items-center gap-2 text-xs font-mono" style={{ color: textMuted }}>
             <RefreshCw size={10} className={pulse && dataSource !== 'manual' ? 'animate-spin text-cyan-400' : ''} />
             <span className="hidden sm:inline">
               {dataSource === 'manual' ? 'Static — your data' : 'Updates every 3s'}
             </span>
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              style={{ background: surface, borderColor: borderCol, color: textMuted, fontSize: 10 }}
+            >
+              <Activity size={10} />
+              <span>Advanced</span>
+            </button>
           </div>
 
         </div>
@@ -535,6 +586,21 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* ── ADVANCED FEATURES ────────────────────────────────────────── */}
+      {showAdvanced && (
+        <AdvancedFeatures
+          metrics={metrics}
+          stressScore={stressScore}
+          alerts={alerts}
+          history={history}
+          theme={theme}
+          onClose={() => setShowAdvanced(false)}
+        />
+      )}
+
+      {/* ── AI CHATBOT ───────────────────────────────────────────────── */}
+      <AIChatbot metrics={metrics} stressScore={stressScore} alerts={alerts} theme={theme} />
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
       <footer
