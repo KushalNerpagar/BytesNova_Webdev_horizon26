@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Activity, Eye, EyeOff, Lock, Mail, User, Sun, Moon, AlertCircle, CheckCircle } from 'lucide-react'
 import { supabase, OWNER_EMAIL, OWNER_PASSWORD, OWNER_PROFILE } from '../lib/supabase'
 import { isManagerApproved, markManagerRegistered } from '../lib/Managerregistry'
+import { LOGO_URI } from "../lib/logoData";
 
 export default function LoginPage({ onLogin, theme, onToggleTheme }) {
   const isDark = theme === 'dark'
@@ -208,7 +209,7 @@ export default function LoginPage({ onLogin, theme, onToggleTheme }) {
               className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 border"
               style={{ background: '#00e5ff18', borderColor: '#00e5ff40', boxShadow: '0 0 30px #00e5ff33' }}
             >
-              <Activity size={32} className="text-cyan-400" />
+              <img src={LOGO_URI} alt="OpsPulse Logo" className="w-8 h-8 object-contain" />
             </div>
             <h1 className="text-3xl font-display font-bold tracking-tight" style={{ color: textMain }}>
               OpsPulse

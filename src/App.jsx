@@ -5,6 +5,8 @@ import { useRealtimeData } from './hooks/useRealtimeData'
 import OwnerDashboard from './pages/OwnerDashboard'
 import OperationsDashboard from './pages/OperationsDashboard'
 import WarRoom from './components/WarRoom'
+import SplashScreen from './components/SplashScreen'
+import { LOGO_URI } from './lib/logoData'
 import LoginPage from './pages/LoginPage'
 import { getStressLabel } from './lib/dataEngine'
 import { downloadDashboardPDF } from './lib/downloadPDF'
@@ -13,6 +15,10 @@ import ManagerHistoryPanel from './components/ManagerHistoryPanel'
 import ManagerListPanel from './components/Managerlistpanel'
 import { logManagerActivity } from './lib/managerHistory'
 import { supabase } from './lib/supabase'
+import AIChatbot from './components/AIChatbot'
+import AlertHistoryPanel, { useSoundAlerts } from './components/AlertHistory'
+import DateFilter from './components/DateFilter'
+import AdvancedFeatures from './components/AdvancedFeatures'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -25,6 +31,10 @@ export default function App() {
   const [theme, setTheme] = useState('dark')
   const [sessionWarning, setSessionWarning] = useState(false)
   const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
+  const [dateFilter, setDateFilter] = useState('today')
+  const [showAdvanced, setShowAdvanced] = useState(false)
+  // const [splashDone, setSplashDone] = useState(false)
 
   useEffect(() => {
     const isRefresh = sessionStorage.getItem('app_started')
@@ -59,6 +69,7 @@ export default function App() {
   const isDark = theme === 'dark'
 
   const { metrics, alerts, stressScore, history, loading, resolveAlert, dataSource, changedKeys, demoSnapshot, demoStressSnapshot } = useRealtimeData(scenario, manualData)
+  const { soundEnabled, setSoundEnabled, dispatched, setDispatched } = useSoundAlerts(alerts)
   const { label: stressLabel, color: stressColor } = getStressLabel(stressScore?.overall ?? null)
   const crisisCount = alerts.filter(a => a.type === 'crisis').length
 
@@ -155,15 +166,36 @@ export default function App() {
         : 'bg-slate-100 text-slate-500 hover:text-slate-800 border border-transparent'
     }`
 
-  if (!user) {
-    return (
-      <LoginPage
-        onLogin={handleLogin}
-        theme={theme}
-        onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
-      />
-    )
-  }
+  // if (!user) {
+  //   return (
+  //     <LoginPage
+  //       onLogin={handleLogin}
+  //       theme={theme}
+  //       onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+  //     />
+  //   )
+  // }
+//   if (showSplash) {
+//   return (
+//     <SplashScreen
+//       onComplete={() => setShowSplash(false)}
+//       logoSrc={null}
+//     />
+//   )
+// }
+if (showSplash) {
+  return <SplashScreen onComplete={() => setShowSplash(false)} logoSrc={LOGO_URI} />
+}
+
+if (!user) {
+  return (
+    <LoginPage
+      onLogin={handleLogin}
+      theme={theme}
+      onToggleTheme={() => setTheme(isDark ? 'light' : 'dark')}
+    />
+  )
+}
 
   return (
     <div
@@ -267,7 +299,7 @@ export default function App() {
           {/* Logo */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30">
-              <Activity size={16} className="text-cyan-400" />
+              <img src={LOGO_URI} alt="OpsPulse Logo" className="w-10 h-10 object-contain" />
             </div>
             <div>
               <span className="text-base font-display font-bold tracking-tight" style={{ color: textMain }}>
@@ -343,6 +375,29 @@ export default function App() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2">
+
+            {/* Alert History + Sound toggle */}
+            <AlertHistoryPanel
+              dispatched={dispatched}
+              setDispatched={setDispatched}
+              theme={theme}
+              soundEnabled={soundEnabled}
+              setSoundEnabled={setSoundEnabled}
+            />
+
+            {/* Date Filter */}
+            <DateFilter value={dateFilter} onChange={setDateFilter} theme={theme} />
+
+            {/* Advanced Features */}
+            <button
+              onClick={() => setShowAdvanced(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all hover:border-cyan-500/50 hover:text-cyan-400"
+              style={{ background: surface, borderColor: borderCol, color: textMuted }}
+              title="Advanced Features"
+            >
+              <Activity size={12} />
+              <span className="hidden sm:inline">Advanced</span>
+            </button>
 
             {/* PDF Download Button */}
             <button
@@ -535,6 +590,21 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* ── ADVANCED FEATURES ────────────────────────────────────────── */}
+      {showAdvanced && (
+        <AdvancedFeatures
+          metrics={metrics}
+          stressScore={stressScore}
+          alerts={alerts}
+          history={history}
+          theme={theme}
+          onClose={() => setShowAdvanced(false)}
+        />
+      )}
+
+      {/* ── AI CHATBOT ───────────────────────────────────────────────── */}
+      <AIChatbot metrics={metrics} stressScore={stressScore} alerts={alerts} theme={theme} />
 
       {/* ── FOOTER ───────────────────────────────────────────────────── */}
       <footer
