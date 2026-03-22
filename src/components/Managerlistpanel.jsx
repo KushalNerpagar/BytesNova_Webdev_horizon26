@@ -1,7 +1,7 @@
 // src/components/ManagerListPanel.jsx
 import React, { useState, useEffect } from 'react'
 import { Users, Plus, ShieldOff, ShieldCheck, ChevronDown, ChevronUp, Mail, User, AlertCircle, CheckCircle, Clock, UserCheck, UserX } from 'lucide-react'
-import { getApprovedManagers, addApprovedManager, toggleManagerStatus } from '../lib/managerRegistry'
+import { getApprovedManagers, addApprovedManager, toggleManagerStatus } from '../lib/Managerregistry'
 
 function timeAgo(iso) {
   if (!iso) return '—'
