@@ -5,7 +5,8 @@
 A real-time business operations dashboard that computes a **Business Stress Score (BSS)** across four key verticals  Sales, Inventory, Support, and Cash Flow  giving SMB owners and operations managers a single unified view of their business health.
 
 ---
-
+Web App has been deployed on vercel . Here is the link :-
+https://bytes-nova-webdev-horizon26.vercel.app/
 ##  Screenshots
 
 > **Replace the placeholders below with your actual screenshots.**
