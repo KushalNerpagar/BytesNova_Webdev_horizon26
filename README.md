@@ -7,6 +7,8 @@ A real-time business operations dashboard that computes a **Business Stress Scor
 ---
 Web App has been deployed on vercel . Here is the link :-
 https://bytes-nova-webdev-horizon26.vercel.app/
+
+---
 ##  Screenshots
 
 > **Replace the placeholders below with your actual screenshots.**
