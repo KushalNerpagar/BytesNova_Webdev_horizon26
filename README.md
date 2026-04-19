@@ -64,28 +64,28 @@ https://bytes-nova-webdev-horizon26.vercel.app/
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        Browser (React)                       │
+│                        Browser (React)                      │
 │                                                             │
-│  ┌──────────┐    ┌─────────────────────────────────────┐   │
-│  │ LoginPage│    │           App.jsx (Root)             │   │
-│  │          │    │  ┌─────────────┐  ┌──────────────┐  │   │
-│  │ Auth flow│    │  │   Header    │  │  Sub-nav bar │  │   │
-│  └──────────┘    │  │  Stress BSS │  │  Role switch │  │   │
-│                  │  │  Scenario   │  │  Mobile nav  │  │   │
-│                  │  │  War Room   │  └──────────────┘  │   │
-│                  │  │  PDF Export │                     │   │
-│                  │  └─────────────┘                     │   │
-│                  │                                       │   │
-│                  │  ┌──────────────┐ ┌───────────────┐  │   │
-│                  │  │OwnerDashboard│ │  OpsDashboard │  │   │
-│                  │  │              │ │               │  │   │
-│                  │  │ StressGauge  │ │ ProgressRings │  │   │
-│                  │  │ MetricCards  │ │ MetricCards   │  │   │
-│                  │  │ TrendChart   │ │ TrendChart    │  │   │
-│                  │  │ AlertPanel   │ │ AlertPanel    │  │   │
-│                  │  │ SummaryCards │ │ DetailTables  │  │   │
-│                  │  └──────────────┘ └───────────────┘  │   │
-│                  └─────────────────────────────────────┘   │
+│  ┌──────────┐    ┌─────────────────────────────────────┐    │
+│  │ LoginPage│    │           App.jsx (Root)            │    │
+│  │          │    │  ┌─────────────┐  ┌──────────────┐  │    │
+│  │ Auth flow│    │  │   Header    │  │  Sub-nav bar │  │    │
+│  └──────────┘    │  │  Stress BSS │  │  Role switch │  │    │
+│                  │  │  Scenario   │  │  Mobile nav  │  │    │
+│                  │  │  War Room   │  └──────────────┘  │    │
+│                  │  │  PDF Export │                    │    │
+│                  │  └─────────────┘                    │    │
+│                  │                                     │    │
+│                  │  ┌──────────────┐ ┌───────────────┐ │    │
+│                  │  │OwnerDashboard│ │  OpsDashboard │ │    │
+│                  │  │              │ │               │ │    │
+│                  │  │ StressGauge  │ │ ProgressRings │ │    │
+│                  │  │ MetricCards  │ │ MetricCards   │ │    │
+│                  │  │ TrendChart   │ │ TrendChart    │ │    │
+│                  │  │ AlertPanel   │ │ AlertPanel    │ │    │
+│                  │  │ SummaryCards │ │ DetailTables  │ │    │
+│                  │  └──────────────┘ └───────────────┘ │    │
+│                  └─────────────────────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
           │                              │
           │ useRealtimeData hook         │
